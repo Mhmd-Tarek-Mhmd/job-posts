@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Job Listings</title>
+  </head>
+  <body>
+    <main class="app">
+      <header class="app__header">
+        <h1 class="sr-only">Job Listings</h1>
+      </header>
+      <section class="app__main">
+        <div hidden class="app__main__filters | card">
+          <ul class="app__main__filters__list | list"></ul>
+          <button
+            aria-label="Clear all filters"
+            class="app__main__filters__clear | btn will-change-color"
+          >
+            Clear
+          </button>
+        </div>
+
+        <div class="app__main_jobs">
+          <p role="alert" aria-label="Loading" class="loader"></p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
