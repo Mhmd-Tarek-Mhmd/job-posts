@@ -288,5 +288,187 @@
         </div>
       </section>
     </main>
+
+    <script>
+      (function () {
+        let arr = [];
+        const $ = document.querySelector.bind(document);
+        const $$ = document.querySelectorAll.bind(document);
+
+        const Modal = { data: [] };
+
+        const Controller = {
+          getData: () => Modal.data,
+          setData: (data) => (Modal.data = data),
+          init: function () {
+            fetch("./assets/data.json")
+              .then((res) => res.json())
+              .then((data) => {
+                this.setData(data);
+                Views.init();
+              });
+          },
+        };
+
+        const Views = {
+          init: function () {
+            // Variables
+            const resetFilters = () => {
+              $(".app__main__filters").setAttribute("hidden", "");
+              this.render(true);
+            };
+
+            // Clear Filters
+            $(".app__main__filters__clear").addEventListener("click", (e) => {
+              resetFilters();
+              $(".app__main__filters__list").innerHTML = "";
+            });
+
+            $("body").addEventListener("click", ({ target }) => {
+              // Add Filter
+              if (target.classList.contains("app__main_job__addFilter")) {
+                const filters = [...$$(".app__main__filter")].map(
+                  (filter) => filter.innerText
+                );
+
+                if (!filters.includes(target.innerText)) {
+                  $(".app__main__filters__list").innerHTML += Components.filter(
+                    target.innerText
+                  );
+                  $(".app__main__filters").removeAttribute("hidden");
+                  Views.render();
+                }
+              }
+
+              // Remove Filter
+              if (target.classList.contains("app__main__filter_remove")) {
+                target.parentElement.remove();
+                !$(".app__main__filters__list").children.length
+                  ? resetFilters()
+                  : this.render();
+              }
+            });
+
+            this.render(true);
+          },
+
+          render: function (isInitialRender) {
+            if (!$(".loader"))
+              $(".app__main_jobs").innerHTML = Components.loader();
+
+            setTimeout(() => {
+              let jobsData = Controller.getData();
+              // Filter Job Posts
+              if (!isInitialRender) {
+                const filters = [...$$(".app__main__filter")].map(
+                  (filter) => filter.innerText
+                );
+                jobsData = jobsData.filter((job) => {
+                  return filters.every((val) =>
+                    [
+                      job.role,
+                      job.level,
+                      ...job.languages,
+                      ...job.tools,
+                    ].includes(val)
+                  );
+                });
+              }
+
+              // Render Job Posts
+              let jobPosts = "";
+              jobsData.forEach((job) => (jobPosts += Components.job(job)));
+              $(".app__main_jobs").innerHTML = jobPosts;
+            }, 500);
+          },
+        };
+
+        const Components = {
+          loader: () =>
+            `<p role="alert" aria-label="Loading" class="loader"></p>`,
+          filter: (name) => `
+            <li class="app__main__filter | badge-rect">
+              <span class="badge">${name}</span>
+              <button
+                aria-label="Remove ${name} filter"
+                class="app__main__filter_remove | btn will-change-bg-color"
+              >
+                <img
+                  aria-hidden="true"
+                  src="./assets/images/icon-remove.svg"
+                  alt=""
+                />
+              </button>
+            </li>
+          `,
+          addFilter: (label) => `
+            <li>
+              <button
+                aria-label="Add ${label} filter"
+                class="app__main_job__addFilter | btn will-change-bg-color badge badge-rect"
+              >
+                ${label}
+              </button>
+            </li>
+          `,
+          job: function (post) {
+            return `
+            <article class="app__main_job ${
+              post.featured ? "app__main_job--featured" : ""
+            } | card">
+              <div class="app__main_job__info__wrapper">
+                <img
+                  aria-hidden="true"
+                  width="88"
+                  height="88"
+                  class="app__main_job__logo"
+                  src="${post.logo}"
+                  alt=""
+                />
+                <div class="app__main_job__info">
+                  <div class="app__main_job__company">
+                    <strong class="app__main_job__company__name">${
+                      post.company
+                    }</strong>
+                    ${
+                      post.new
+                        ? "<span class='badge badge-pills badge-pills--new'>new</span>"
+                        : ""
+                    }
+                    ${
+                      post.featured
+                        ? "<span class='badge badge-pills badge-pills--featured'>featured</span>"
+                        : ""
+                    }
+                  </div>
+                  <h2 class="app__main_job__role">${post.position}</h2>
+                  <div class="app__main_job__desc">
+                    <span>${post.postedAt}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>${post.contract}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>${post.location}</span>
+                  </div>
+                </div>
+              </div>
+
+              <ul class="app__main_job__skills | list">
+                ${this.addFilter(post.role, "role")}
+                ${this.addFilter(post.level, "level")}
+                ${post.languages
+                  .map((language) => this.addFilter(language, "language"))
+                  .join("")}
+                ${post.tools
+                  .map((tool) => this.addFilter(tool, "tool"))
+                  .join("")}
+              </ul>
+            </article>
+          `;
+          },
+        };
+
+        Controller.init();
+      })();
+    </script>
   </body>
 </html>
